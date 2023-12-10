@@ -117,7 +117,7 @@ export const Grid = () => {
     [shipHits, selectedSquare]
   );
 
-  const submitSquare = useCallback(() => {
+  const submitSquare = useCallback(async () => {
     // check that square hasn't already been taken
     const isInShotHistoryArray = shotHistory.filter((eachShot) => {
       return eachShot.selectedSquare === selectedSquare;
@@ -149,6 +149,17 @@ export const Grid = () => {
     };
     shotHistory.push(shotHistoryObject);
     setNumberOfShots(numberOfShots + 1);
+    const collection = await returnMongoCollection("battleship");
+    const { modifiedCount } = await collection.updateOne(
+      { game: `${GAME_NUMBER}` },
+      {
+        $set: { shipHits },
+        $push: { shotHistory: shotHistoryObject },
+      }
+    );
+    if (modifiedCount === 1) {
+      console.log("Successfully saved shot");
+    }
 
     // clear selectedSquare
     setSelectedSquare(underlineText);
@@ -234,6 +245,5 @@ export const Grid = () => {
 };
 
 // TODO
-// change square to red or white if hit or miss
 // tts voice (https://www.npmjs.com/package/@google-cloud/text-to-speech)
 // siren sound
