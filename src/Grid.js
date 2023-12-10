@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { returnMongoCollection } from "./database";
 import * as S from "./Grid.styles";
+import Speech from "speak-tts";
 
 const rowHeaders = ["0", "A", "B", "C", "D", "E", "F", "G", "H", "I", "J"];
 
@@ -122,7 +123,7 @@ export const Grid = () => {
     const isInShotHistoryArray = shotHistory.filter((eachShot) => {
       return eachShot.selectedSquare === selectedSquare;
     });
-    if (isInShotHistoryArray.length > 0) {
+    if (isInShotHistoryArray.length > 0 || selectedSquare === underlineText) {
       console.warn("ALREADY TOOK THIS SHOT");
       setSelectedSquare(underlineText);
       return;
@@ -130,15 +131,24 @@ export const Grid = () => {
 
     // check for hit vs miss
     const hitShipName = checkForHit();
-    console.log("HIT SHIP NAME:", hitShipName);
+    // console.log("HIT SHIP NAME:", hitShipName);
     const isSunk = checkForSunk(hitShipName);
-    console.log("isSunk", isSunk);
 
-    if (isSunk) {
-      // TODO do stuff if sunk
-    }
+    const speech = new Speech();
+    speech.init({
+      volume: 1,
+      voice: "Microsoft David - English (United States)",
+    });
 
-    // TODO add shot to history in db
+    const hOrM = hitShipName.length === 0 ? "Miss." : "Hit!";
+    const ifSunk = isSunk ? `${hitShipName} sunk.` : "";
+    const textText = `${hOrM} ${ifSunk}`;
+
+    speech.speak({
+      text: textText,
+    });
+
+    // Save shotHistory to DB
     const isHit = hitShipName.length > 0;
     const shotHistoryObject = {
       timestamp: new Date().toISOString(),
@@ -245,5 +255,4 @@ export const Grid = () => {
 };
 
 // TODO
-// tts voice (https://www.npmjs.com/package/@google-cloud/text-to-speech)
 // siren sound
