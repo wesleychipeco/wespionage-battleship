@@ -55,6 +55,18 @@ export const EachSquare = styled.div`
   height: 100%;
   border: 0.1rem black solid;
 
+  ${(props) => {
+    if (props.isHitOrMiss.length > 0) {
+      if (props.isHitOrMiss === "hit") {
+        return `background-color: red;`;
+      } else {
+        return `background-color: white;`;
+      }
+    } else {
+      return `background-color: #15afbd;`;
+    }
+  }}
+
   &:hover {
     cursor: ${(props) => (props.disablehover === "true" ? "auto" : "pointer")};
     background-color: ${(props) =>
@@ -77,13 +89,24 @@ export const HeaderText = styled.p`
   padding: 0;
 `;
 
+export const NumberOfShotsContainer = styled.div`
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: center;
+
+  height: 10%;
+
+  margin-right: 2rem;
+`;
+
 export const SelectedContainer = styled.div`
   display: flex;
   flex-direction: column;
   justify-content: space-between;
   align-items: center;
 
-  height: 40%;
+  height: 30%;
 
   margin-left: 2rem;
 `;
