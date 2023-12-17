@@ -87,6 +87,8 @@ export const HeaderText = styled.p`
   font-size: 1.25rem;
   margin: 0;
   padding: 0;
+
+  font-weight: ${(props) => (props.header ? "800" : "normal")};
 `;
 
 export const NumberOfShotsContainer = styled.div`
@@ -148,4 +150,21 @@ export const SubmitButton = styled.div`
     cursor: pointer;
     opacity: 0.8;
   }
+`;
+
+export const AbortStateContainer = styled.div`
+  width: 100%;
+  height: 100%;
+  background-color: red;
+  position: absolute;
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+`;
+
+export const AbortText = styled.h1`
+  font-size: 10rem;
+  color: white;
+  font-weight: 800;
 `;

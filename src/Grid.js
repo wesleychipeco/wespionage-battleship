@@ -1,7 +1,8 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { returnMongoCollection } from "./database";
 import * as S from "./Grid.styles";
 import Speech from "speak-tts";
+import AlarmSound from "./Boat_Alarm_Alert.mp3";
 
 const rowHeaders = ["0", "A", "B", "C", "D", "E", "F", "G", "H", "I", "J"];
 
@@ -22,12 +23,15 @@ export const Grid = () => {
   const [shipPositions, setShipPositions] = useState({});
   const [shipHits, setShipHits] = useState({});
   const [shotHistory, setShotHistory] = useState([]);
+  const [abortState, setAbortState] = useState(false);
+
+  const alarmAudio = new Audio(AlarmSound);
 
   useEffect(() => {
     const loadData = async () => {
       const collection = await returnMongoCollection("battleship");
       const data = await collection.find({ game: `${GAME_NUMBER}` });
-      console.log("data", data);
+      console.log("initial data", data);
 
       const rawShotHistory = data?.[0]?.shotHistory ?? [];
       setShipPositions(data?.[0]?.shipPositions ?? {});
@@ -54,14 +58,14 @@ export const Grid = () => {
       if (isFirstRow && isFirstColumn) {
         return <S.HeaderText></S.HeaderText>;
       } else if (isFirstRow) {
-        return <S.HeaderText>{columnHeader}</S.HeaderText>;
+        return <S.HeaderText header>{columnHeader}</S.HeaderText>;
       } else if (isFirstColumn) {
-        return <S.HeaderText>{rowHeader}</S.HeaderText>;
+        return <S.HeaderText header>{rowHeader}</S.HeaderText>;
       } else {
         return (
           <>
             <S.PegCircle />
-            {`${rowHeader}${columnHeader}`}
+            {/* {`${rowHeader}${columnHeader}`} */}
           </>
         );
       }
@@ -71,7 +75,7 @@ export const Grid = () => {
 
   const checkForHit = useCallback(() => {
     // console.log("SHIP POSITOINS", shipPositions);
-    // console.log("sel square", selectedSquare);
+    // console.log("selected square", selectedSquare);
     for (const shipName in shipPositions) {
       const shipLocationsArray = shipPositions[shipName];
       if (shipLocationsArray.includes(selectedSquare)) {
@@ -82,14 +86,16 @@ export const Grid = () => {
   }, [selectedSquare, shipPositions]);
 
   const checkForSunk = useCallback(
-    (shipName) => {
+    (shipName, wasShipHit = false) => {
       if (shipName.length === 0) {
         return false;
       }
 
-      // console.log("before: ", shipHits[shipName]);
-      shipHits[shipName].push(selectedSquare);
-      // console.log("after: ", shipHits[shipName]);
+      if (wasShipHit) {
+        // console.log("before shipHits: ", shipHits[shipName]);
+        shipHits[shipName].push(selectedSquare);
+        // console.log("after shipHits: ", shipHits[shipName]);
+      }
 
       const lengthOfShipHits = shipHits[shipName].length;
       let hitsNeededToSink;
@@ -132,7 +138,7 @@ export const Grid = () => {
     // check for hit vs miss
     const hitShipName = checkForHit();
     // console.log("HIT SHIP NAME:", hitShipName);
-    const isSunk = checkForSunk(hitShipName);
+    const isSunk = checkForSunk(hitShipName, true);
 
     const speech = new Speech();
     speech.init({
@@ -173,10 +179,32 @@ export const Grid = () => {
 
     // clear selectedSquare
     setSelectedSquare(underlineText);
+
+    // check if all are sunk
+    let numberOfShipsSunk = 0;
+    for (const eachShip in shipHits) {
+      const didThisShipSink = checkForSunk(eachShip);
+      if (didThisShipSink) {
+        numberOfShipsSunk++;
+      }
+    }
+    // console.log("ship sink", eachShip, didThisShipSink);
+    // console.log("Number of ships sunk: ", numberOfShipsSunk);
+    if (numberOfShipsSunk === 5) {
+      setTimeout(() => {
+        alarmAudio.play();
+        setAbortState(true);
+      }, 3000);
+    }
   }, [selectedSquare, numberOfShots, shotHistory]);
 
   return (
     <S.Container>
+      {abortState && (
+        <S.AbortStateContainer>
+          <S.AbortText>RED ALERT!!!</S.AbortText>
+        </S.AbortStateContainer>
+      )}
       <S.Title>Florin vs Guilder Battleship!!!</S.Title>
       <S.Directions>Select a square, take the shot!</S.Directions>
 
@@ -204,7 +232,7 @@ export const Grid = () => {
                   );
                   let isHitOrMiss = "";
                   if (isInShotHistoryArray.length === 1) {
-                    console.log("isInShotHistoryArray", isInShotHistoryArray);
+                    // console.log("isInShotHistoryArray", isInShotHistoryArray);
                     if (isInShotHistoryArray[0].isHit) {
                       isHitOrMiss = "hit";
                     } else {
@@ -253,6 +281,3 @@ export const Grid = () => {
     </S.Container>
   );
 };
-
-// TODO
-// siren sound
