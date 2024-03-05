@@ -1,4 +1,5 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
+import { capitalize } from "lodash";
 import { returnMongoCollection } from "./database";
 import * as S from "./Grid.styles";
 import Speech from "speak-tts";
@@ -22,6 +23,7 @@ export const Grid = () => {
   const [numberOfShots, setNumberOfShots] = useState(0);
   const [shipPositions, setShipPositions] = useState({});
   const [shipHits, setShipHits] = useState({});
+  const [shipsRemaining, setShipsRemaining] = useState([]);
   const [shotHistory, setShotHistory] = useState([]);
   const [abortState, setAbortState] = useState(false);
 
@@ -182,12 +184,18 @@ export const Grid = () => {
 
     // check if all are sunk
     let numberOfShipsSunk = 0;
+    const newShipsRemaining = [];
     for (const eachShip in shipHits) {
       const didThisShipSink = checkForSunk(eachShip);
+      // console.log("each ship", eachShip);
+      // console.log("did this ship sink", didThisShipSink);
       if (didThisShipSink) {
         numberOfShipsSunk++;
+      } else {
+        newShipsRemaining.push(eachShip);
       }
     }
+    setShipsRemaining(newShipsRemaining);
     // console.log("ship sink", eachShip, didThisShipSink);
     // console.log("Number of ships sunk: ", numberOfShipsSunk);
     if (numberOfShipsSunk === 5) {
@@ -209,10 +217,22 @@ export const Grid = () => {
       <S.Directions>Select a square, take the shot!</S.Directions>
 
       <S.BodyContainer>
-        <S.NumberOfShotsContainer>
+        <S.LeftContainer>
+          <div>
+            <S.SelectedSquareHeader>Ships Remaining:</S.SelectedSquareHeader>
+            <S.ShipsRemainingContainer>
+              {shipsRemaining.map((eachShip) => {
+                return (
+                  <S.ShipsRemainingText key={eachShip}>
+                    {capitalize(eachShip)}
+                  </S.ShipsRemainingText>
+                );
+              })}
+            </S.ShipsRemainingContainer>
+          </div>
           <S.SelectedSquareHeader>Number of Shots</S.SelectedSquareHeader>
           <S.SelectedSquareText>{numberOfShots}</S.SelectedSquareText>
-        </S.NumberOfShotsContainer>
+        </S.LeftContainer>
         <S.OuterContainer>
           {columnHeaders.map((eachRow, rowIndex) => {
             const isFirstRow = rowIndex === 0;
