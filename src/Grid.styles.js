@@ -14,6 +14,7 @@ export const Title = styled.h1`
 `;
 
 export const Directions = styled.p`
+  font-size: 1.5rem;
   margin: 1rem 0 1rem 0;
 `;
 
@@ -91,15 +92,30 @@ export const HeaderText = styled.p`
   font-weight: ${(props) => (props.header ? "800" : "normal")};
 `;
 
-export const NumberOfShotsContainer = styled.div`
+export const LeftContainer = styled.div`
   display: flex;
   flex-direction: column;
   justify-content: space-between;
   align-items: center;
 
-  height: 10%;
+  height: 60%;
 
   margin-right: 2rem;
+`;
+
+export const ShipsRemainingContainer = styled.div`
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: center;
+
+  margin-bottom: 5rem;
+`;
+
+export const ShipsRemainingText = styled.h4`
+  font-size: 1.5rem;
+  margin: 0 0 0rem 0;
+  padding: 0;
 `;
 
 export const SelectedContainer = styled.div`
