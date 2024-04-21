@@ -11,12 +11,15 @@ const columnHeaders = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
 
 const underlineText = "___";
 
-const GAME_NUMBER = 1;
+const GAME_NUMBER = 3;
 
 const PATROL_BOAT_HITS = 2;
 const SUBMARINE_HITS = 3;
 const BATTLESHIP_HITS = 4;
 const AIRCRAFT_CARRIER_HITS = 5;
+
+const START_ALARM_DELAY = 3000;
+const STOP_ALARM_DELAY = 5000;
 
 export const Grid = () => {
   const [selectedSquare, setSelectedSquare] = useState(underlineText);
@@ -26,8 +29,7 @@ export const Grid = () => {
   const [shipsRemaining, setShipsRemaining] = useState([]);
   const [shotHistory, setShotHistory] = useState([]);
   const [abortState, setAbortState] = useState(false);
-
-  const alarmAudio = new Audio(AlarmSound);
+  const [alarmAudio, _] = useState(new Audio(AlarmSound));
 
   useEffect(() => {
     const loadData = async () => {
@@ -44,6 +46,16 @@ export const Grid = () => {
 
     loadData();
   }, []);
+
+  useEffect(() => {
+    abortState ? alarmAudio.play() : alarmAudio.pause();
+
+    if (abortState) {
+      setTimeout(() => {
+        setAbortState(false);
+      }, STOP_ALARM_DELAY);
+    }
+  }, [abortState]);
 
   const clickedSquare = useCallback(
     (isHeader, row, column) => {
@@ -200,9 +212,8 @@ export const Grid = () => {
     // console.log("Number of ships sunk: ", numberOfShipsSunk);
     if (numberOfShipsSunk === 5) {
       setTimeout(() => {
-        alarmAudio.play();
         setAbortState(true);
-      }, 3000);
+      }, START_ALARM_DELAY);
     }
   }, [selectedSquare, numberOfShots, shotHistory]);
 
