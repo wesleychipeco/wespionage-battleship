@@ -64,7 +64,11 @@ export const EachSquare = styled.div`
         return `background-color: white;`;
       }
     } else {
-      return `background-color: #15afbd;`;
+      if (props.isSquareSelected) {
+        return `background-color: #04648a;`;
+      } else {
+        return `background-color:  #15afbd;`;
+      }
     }
   }}
 

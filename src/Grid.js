@@ -11,7 +11,7 @@ const columnHeaders = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
 
 const underlineText = "___";
 
-const GAME_NUMBER = 3;
+const GAME_NUMBER = 4;
 
 const PATROL_BOAT_HITS = 2;
 const SUBMARINE_HITS = 3;
@@ -19,7 +19,7 @@ const BATTLESHIP_HITS = 4;
 const AIRCRAFT_CARRIER_HITS = 5;
 
 const START_ALARM_DELAY = 3000;
-const STOP_ALARM_DELAY = 5000;
+const STOP_ALARM_DELAY = 6000;
 
 export const Grid = () => {
   const [selectedSquare, setSelectedSquare] = useState(underlineText);
@@ -29,7 +29,7 @@ export const Grid = () => {
   const [shipsRemaining, setShipsRemaining] = useState([]);
   const [shotHistory, setShotHistory] = useState([]);
   const [abortState, setAbortState] = useState(false);
-  const [alarmAudio, _] = useState(new Audio(AlarmSound));
+  const [alarmAudio] = useState(new Audio(AlarmSound));
 
   useEffect(() => {
     const loadData = async () => {
@@ -55,7 +55,7 @@ export const Grid = () => {
         setAbortState(false);
       }, STOP_ALARM_DELAY);
     }
-  }, [abortState]);
+  }, [abortState, alarmAudio]);
 
   const clickedSquare = useCallback(
     (isHeader, row, column) => {
@@ -215,7 +215,14 @@ export const Grid = () => {
         setAbortState(true);
       }, START_ALARM_DELAY);
     }
-  }, [selectedSquare, numberOfShots, shotHistory]);
+  }, [
+    selectedSquare,
+    numberOfShots,
+    shotHistory,
+    shipHits,
+    checkForHit,
+    checkForSunk,
+  ]);
 
   return (
     <S.Container>
@@ -225,7 +232,9 @@ export const Grid = () => {
         </S.AbortStateContainer>
       )}
       <S.Title>Florin vs Guilder Battleship!!!</S.Title>
-      <S.Directions>Select a square, take the shot!</S.Directions>
+      <S.Directions>
+        Select a square, then submit to take the shot!
+      </S.Directions>
 
       <S.BodyContainer>
         <S.LeftContainer>
@@ -261,6 +270,7 @@ export const Grid = () => {
                       );
                     }
                   );
+
                   let isHitOrMiss = "";
                   if (isInShotHistoryArray.length === 1) {
                     // console.log("isInShotHistoryArray", isInShotHistoryArray);
@@ -271,12 +281,14 @@ export const Grid = () => {
                     }
                   }
 
+                  const squareId = `${rowHeaders[rowIndex]}${columnHeaders[columnIndex]}`;
                   return (
                     <S.EachSquare
                       key={eachColumn}
                       disablehover={(
                         isFirstRow ||
                         isFirstColumn ||
+                        isHitOrMiss.length > 0 ||
                         isHitOrMiss.length > 0
                       ).toString()}
                       isHitOrMiss={isHitOrMiss}
@@ -287,6 +299,7 @@ export const Grid = () => {
                           columnHeaders[columnIndex]
                         )
                       }
+                      isSquareSelected={selectedSquare === squareId}
                     >
                       {squareContent(
                         isFirstRow,
